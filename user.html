@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <title>User Data Entry Page</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f4f7f6; color: #333; }
+        .form-container { max-width: 500px; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin: 0 auto; }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #34495e; }
+        input[type="text"], input[type="date"], select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 15px; }
+        textarea { resize: vertical; height: 80px; }
+        .sub-division { background-color: #eef2f5; padding: 15px; border-radius: 5px; border-left: 5px solid #007bff; display: none; margin-top: 10px; }
+        button { width: 100%; padding: 12px; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 5px; font-size: 16px; font-weight: bold; transition: background 0.3s; }
+        button:hover { background-color: #218838; }
+        .logout-btn { display: block; text-align: center; margin-top: 15px; color: #dc3545; text-decoration: none; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Daily Data Entry Form</h2>
+    
+    <div class="form-group">
+        <label for="entryDate">Date:</label>
+        <input type="date" id="entryDate" readonly>
+    </div>
+
+    <div class="form-group">
+        <label for="division">Area (Division):</label>
+        <select id="division" onchange="toggleDivisionFields()">
+            <option value="">-- select division --</option>
+            <option value="Dry Powder">Dry Powder</option>
+            <option value="Injection">Injection</option>
+            <option value="Lab">Lab</option>
+            <option value="Q.C">Q.C</option>
+            <option value="Liquid">Liquid</option>
+            <option value="Conference">Conference</option>
+            <option value="Tablet">Tablet</option> <!-- Tablet  opstion add -->
+        </select>
+    </div>
+
+    
+    <div id="subDivisionContainer" class="sub-division">
+        <h4 style="margin-top: 0; color: #007bff;" id="selectedDivTitle">Division Setting</h4>
+        
+        
+        <div class="form-group">
+            <label for="subDivision">Sub Division:</label>
+            <select id="subDivision">
+                <option value="">-- select sub division --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="roomNumber">Room Number:</label>
+            <input type="text" id="roomNumber" placeholder="e.g. 55">
+        </div>
+        <div class="form-group">
+            <label for="temperature">Temperature Set (°C):</label>
+            <input type="text" id="temperature" placeholder="e.g. 22°C">
+        </div>
+        <div class="form-group">
+            <label for="rhValue">R.H. Set (%):</label>
+            <input type="text" id="rhValue" placeholder="e.g. 45%">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="problemText">Any Problem?</label>
+        <textarea id="problemText" placeholder="Any problem...! Tell me"></textarea>
+    </div>
+
+    <button onclick="saveData()">Data Submit</button>
+    <a href="loginpg.html" class="logout-btn">Log Out</a>
+</div>
+
+<script>
+    document.getElementById('entryDate').valueAsDate = new Date();
+
+    
+    const subDivisionData = {
+        "Dry Powder": ["Line 1 (Powder)", "Line 2 (Powder)", "Bulk Area"],
+        "Injection": ["Vial Washing", "Filling Room", "Sealing Room", "Sterilization"],
+        "Lab": ["Micro Lab", "Chemical Lab", "Instrumentation"],
+        "Q.C": ["Stability Room", "Sample Storage", "Documentation"],
+        "Liquid": ["Manufacturing", "Filling Line", "Washing Area"],
+        "Conference": ["Main Hall", "Meeting Room A", "Meeting Room B"],
+        "Tablet": ["Granulation", "Compression", "Coating", "Blister Packing"]
+    };
+
+    function toggleDivisionFields() {
+        let division = document.getElementById("division").value;
+        let subContainer = document.getElementById("subDivisionContainer");
+        let title = document.getElementById("selectedDivTitle");
+        let subDivSelect = document.getElementById("subDivision");
+
+       
+        subDivSelect.innerHTML = '<option value="">-- select sub division --</option>';
+
+        if (subDivisionData[division]) {
+            subContainer.style.display = "block";
+            title.innerText = division + " Setting";
+
+            
+            subDivisionData[division].forEach(function(subDiv) {
+                let option = document.createElement("option");
+                option.value = subDiv;
+                option.text = subDiv;
+                subDivSelect.appendChild(option);
+            });
+        } else {
+            subContainer.style.display = "none";
+        }
+    }
+
+    function saveData() {
+        let date = document.getElementById("entryDate").value;
+        let division = document.getElementById("division").value;
+        let subDivision = document.getElementById("subDivision").value;
+        let roomNumber = document.getElementById("roomNumber").value.trim();
+        let temperature = document.getElementById("temperature").value.trim();
+        let rhValue = document.getElementById("rhValue").value.trim();
+        let problem = document.getElementById("problemText").value.trim();
+
+        if (division === "") { 
+            alert("Please choose division!"); 
+            return; 
+        }
+
+        if (subDivisionData[division] && subDivision === "") {
+            alert("Please choose sub division!");
+            return;
+        }
+
+        let record = {
+            date: date,
+            division: division,
+            subDivision: subDivision ? subDivision : "N/A",
+            roomNumber: roomNumber,
+            temperature: temperature,
+            rh: rhValue,
+            problem: problem === "" ? "No problem" : problem
+        };
+
+        let existingData = JSON.parse(localStorage.getItem("allUsersData")) || [];
+        existingData.push(record);
+        localStorage.setItem("allUsersData", JSON.stringify(existingData));
+        
+        alert("Details submitted successfully!");
+        
+        document.getElementById("division").value = "";
+        document.getElementById("subDivision").value = "";
+        document.getElementById("roomNumber").value = "";
+        document.getElementById("temperature").value = "";
+        document.getElementById("rhValue").value = "";
+        document.getElementById("problemText").value = "";
+        document.getElementById("subDivisionContainer").style.display = "none";
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glassmorphism Login Page</title>
+    
+    
+    <link rel="stylesheet" href="https://cloudflare.com">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: url('myphoto.jpg') no-repeat center center/cover, linear-gradient(135deg, #4a5568, #2d3748); 
+        }
+
+        .login-container {
+            position: relative;
+            width: 400px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.15); 
+            border: 2px solid rgba(255, 255, 255, 0.25); 
+            border-radius: 20px;
+            backdrop-filter: blur(15px);  
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            text-align: center;
+            color: #000;
+        }
+
+       
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #000;
+            color: #fff;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: #dc3545; 
+            transform: scale(1.1);
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        .input-box {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .input-box input, .input-box select {
+            width: 100%;
+            padding: 15px 45px 15px 15px;
+            background: transparent;
+            border: 1.5px solid #000;
+            border-radius: 10px;
+            outline: none;
+            font-size: 16px;
+            color: #000;
+        }
+
+        .input-box select {
+            padding-right: 20px;
+            appearance: none; 
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .input-box select option {
+            background: #fff;
+            color: #000;
+        }
+
+        .input-box input::placeholder {
+            color: rgba(0, 0, 0, 0.6);
+        }
+
+        .input-box i {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            color: rgba(0, 0, 0, 0.7);
+            pointer-events: none;
+        }
+
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .remember-forgot label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .remember-forgot a {
+            color: #000;
+            text-decoration: underline;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: #051911;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;           
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .login-btn:hover {
+            background: #000;
+        }
+
+        .register-link {
+            margin-top: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .register-link a {
+            color: #000;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        
+        <button class="close-btn" id="closeBtn">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <h2>Login</h2>
+
+        <form id="loginForm">
+            
+            <div class="input-box">
+                <input type="email" id="email" placeholder="Email" required>
+                <i class="fa-solid fa-envelope"></i>
+            </div>
+
+            <div class="input-box">
+                <input type="password" id="password" placeholder="Password" required>
+                <i class="fa-solid fa-lock"></i>
+            </div>
+
+            <div class="input-box">
+                <select id="userRole" required>
+                    <option value="">Select Position...</option>
+                    <option value="user">User</option>
+                    <option value="viewer">Viewer</option>
+                </select>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            
+            <div class="remember-forgot">
+                <label><input type="checkbox"> Remember me</label>
+                <a href="#">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="login-btn">Login</button>
+
+            <div class="register-link">
+                <p>Don't have an account? <a href="#">Register</a></p>
+            </div>
+        </form>
+    </div>
+
+    <script>
+       
+        document.getElementById('closeBtn').addEventListener('click', function() {
+           
+            window.close();
+            
+           
+            window.location.href = 'index.html'; 
+        });
+
+        
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('userRole').value;
+
+            const correctUserEmail = "user@mail.com";
+            const correctUserPassword = "user123";
+
+            const correctViewerEmail = "viewer@mail.com";
+            const correctViewerPassword = "viewer123";
+
+            if (role === 'user') {
+                if (email === correctUserEmail && password === correctUserPassword) {
+                    alert('User Login Successful!');
+                    window.location.href = 'user.html'; 
+                } else {
+                    alert('wrong Email/password!');
+                }
+            } 
+            else if (role === 'viewer') {
+                if (email === correctViewerEmail && password === correctViewerPassword) {
+                    alert('Viewer Login Successful!');
+                    window.location.href = 'viewer.html'; 
+                } else {
+                    alert('wrong Email/password!');
+                }
+            } else {
+                alert(' please select position!');
+            }
+        });
+    </script>
+
+</body>
+</html>
