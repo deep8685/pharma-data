@@ -18,15 +18,12 @@
     </style>
 </head>
 <body>
-
 <div class="form-container">
     <h2>Daily Data Entry Form</h2>
-    
     <div class="form-group">
         <label for="entryDate">Date:</label>
         <input type="date" id="entryDate" readonly>
     </div>
-
     <div class="form-group">
         <label for="division">Area (Division):</label>
         <select id="division" onchange="toggleDivisionFields()">
@@ -37,22 +34,17 @@
             <option value="Q.C">Q.C</option>
             <option value="Liquid">Liquid</option>
             <option value="Conference">Conference</option>
-            <option value="Tablet">Tablet</option> <!-- Tablet  opstion add -->
+            <option value="Tablet">Tablet</option>
         </select>
     </div>
-
-    
     <div id="subDivisionContainer" class="sub-division">
         <h4 style="margin-top: 0; color: #007bff;" id="selectedDivTitle">Division Setting</h4>
-        
-        
         <div class="form-group">
             <label for="subDivision">Sub Division:</label>
             <select id="subDivision">
                 <option value="">-- select sub division --</option>
             </select>
         </div>
-
         <div class="form-group">
             <label for="roomNumber">Room Number:</label>
             <input type="text" id="roomNumber" placeholder="e.g. 55">
@@ -66,20 +58,17 @@
             <input type="text" id="rhValue" placeholder="e.g. 45%">
         </div>
     </div>
-
     <div class="form-group">
         <label for="problemText">Any Problem?</label>
         <textarea id="problemText" placeholder="Any problem...! Tell me"></textarea>
     </div>
-
     <button onclick="saveData()">Data Submit</button>
     <a href="loginpg.html" class="logout-btn">Log Out</a>
 </div>
-
 <script>
-    document.getElementById('entryDate').valueAsDate = new Date();
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzz8kxjMO_182nMTANGycvarafTW-D1nst8oTdDGgBM3kMgSXRq4QydFPmmZrRJPVxNMA/exec";
 
-    
+    document.getElementById('entryDate').valueAsDate = new Date();
     const subDivisionData = {
         "Dry Powder": ["Line 1 (Powder)", "Line 2 (Powder)", "Bulk Area"],
         "Injection": ["Vial Washing", "Filling Room", "Sealing Room", "Sterilization"],
@@ -95,15 +84,10 @@
         let subContainer = document.getElementById("subDivisionContainer");
         let title = document.getElementById("selectedDivTitle");
         let subDivSelect = document.getElementById("subDivision");
-
-       
         subDivSelect.innerHTML = '<option value="">-- select sub division --</option>';
-
         if (subDivisionData[division]) {
             subContainer.style.display = "block";
             title.innerText = division + " Setting";
-
-            
             subDivisionData[division].forEach(function(subDiv) {
                 let option = document.createElement("option");
                 option.value = subDiv;
@@ -124,39 +108,32 @@
         let rhValue = document.getElementById("rhValue").value.trim();
         let problem = document.getElementById("problemText").value.trim();
 
-        if (division === "") { 
-            alert("Please choose division!"); 
-            return; 
-        }
-
-        if (subDivisionData[division] && subDivision === "") {
-            alert("Please choose sub division!");
-            return;
-        }
+        if (division === "") { alert("Please choose division!"); return; }
+        if (subDivisionData[division] && subDivision === "") { alert("Please choose sub division!"); return; }
 
         let record = {
-            date: date,
-            division: division,
-            subDivision: subDivision ? subDivision : "N/A",
-            roomNumber: roomNumber,
-            temperature: temperature,
-            rh: rhValue,
+            date: date, division: division, subDivision: subDivision ? subDivision : "N/A",
+            roomNumber: roomNumber || "N/A", temperature: temperature || "N/A", rh: rhValue || "N/A",
             problem: problem === "" ? "No problem" : problem
         };
 
-        let existingData = JSON.parse(localStorage.getItem("allUsersData")) || [];
-        existingData.push(record);
-        localStorage.setItem("allUsersData", JSON.stringify(existingData));
-        
-        alert("Details submitted successfully!");
-        
-        document.getElementById("division").value = "";
-        document.getElementById("subDivision").value = "";
-        document.getElementById("roomNumber").value = "";
-        document.getElementById("temperature").value = "";
-        document.getElementById("rhValue").value = "";
-        document.getElementById("problemText").value = "";
-        document.getElementById("subDivisionContainer").style.display = "none";
+        fetch(GOOGLE_SCRIPT_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(record)
+        })
+        .then(() => {
+            alert("Details submitted successfully to Cloud Sheet!");
+            document.getElementById("division").value = "";
+            document.getElementById("subDivision").value = "";
+            document.getElementById("roomNumber").value = "";
+            document.getElementById("temperature").value = "";
+            document.getElementById("rhValue").value = "";
+            document.getElementById("problemText").value = "";
+            document.getElementById("subDivisionContainer").style.display = "none";
+        })
+        .catch(() => alert("Error connecting to online sheet!"));
     }
 </script>
 </body>
