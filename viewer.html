@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Viewer Dashboard</title>
-    
-    
     <script src="https://cloudflare.com"></script>
-    
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f4f7f6; color: #333; }
         .dashboard-container { max-width: 950px; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin: 0 auto; }
@@ -19,7 +16,6 @@
         .btn { padding: 10px 15px; cursor: pointer; border: none; border-radius: 5px; font-size: 14px; font-weight: bold; transition: background 0.3s; }
         .btn-danger { background-color: #dc3545; color: white; }
         .btn-danger:hover { background-color: #bd2130; }
-        
         .btn-success { background-color: #28a745; color: white; margin-right: 5px; }
         .btn-success:hover { background-color: #218838; }
         .logout-link { color: #007bff; text-decoration: none; font-weight: bold; cursor: pointer; }
@@ -31,27 +27,18 @@
         tr:hover { background-color: #f1f1f1; }
         .no-data { text-align: center; padding: 20px; color: #7f8c8d; font-style: italic; }
         .problem-badge { background-color: #ffeeba; color: #856404; padding: 4px 8px; border-radius: 4px; font-size: 13px; font-weight: bold; }
-
-       
-        @media print {
-            .action-bar, .btn, .logout-link { display: none !important; }
-            body { margin: 10px; background-color: #fff; }
-            .dashboard-container { box-shadow: none; padding: 0; max-width: 100%; }
-        }
+        @media print { .action-bar, .btn, .logout-link { display: none !important; } body { margin: 10px; background-color: #fff; } .dashboard-container { box-shadow: none; padding: 0; max-width: 100%; } }
     </style>
 </head>
 <body>
-
 <div class="dashboard-container" id="pdfContent">
     <h2> Viewer Page </h2>
-    
     <div class="action-bar">
         <div class="filter-group">
             <div class="filter-item">
                 <label for="filterDate" style="font-weight: bold;">date filter:</label>
                 <input type="date" id="filterDate" onchange="loadRecords()">
             </div>
-
             <div class="filter-item">
                 <label for="filterDivision" style="font-weight: bold;">division filter:</label>
                 <select id="filterDivision" onchange="loadRecords()">
@@ -67,13 +54,10 @@
             </div>
         </div>
         <div>
-           
             <button class="btn btn-success" onclick="exportToPDF()">Save to PDF</button>
-            <button class="btn btn-danger" onclick="clearAllData()">all data clear</button>
             <a href="loginpg.html" class="logout-link" style="margin-left: 15px;">Log Out</a>
         </div>
     </div>
-
     <div class="table-responsive">
         <table id="recordsTable">
             <thead>
@@ -89,13 +73,12 @@
             <tbody id="dataTableBody"></tbody>
         </table>
     </div>
-    
     <div id="noDataMessage" class="no-data" style="display: none;">No record available at present</div>
 </div>
-
 <script>
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzz8kxjMO_182nMTANGycvarafTW-D1nst8oTdDGgBM3kMgSXRq4QydFPmmZrRJPVxNMA/exec";
+
     document.addEventListener("DOMContentLoaded", () => {
-        
         const today = new Date().toISOString().split('T')[0];
         document.getElementById("filterDate").value = today;
         loadRecords();
@@ -107,80 +90,75 @@
         const filterDivisionValue = document.getElementById("filterDivision").value;
         const filterDateValue = document.getElementById("filterDate").value; 
         
-        const existingData = JSON.parse(localStorage.getItem("allUsersData")) || [];
-        tableBody.innerHTML = "";
-        
-        const filteredData = existingData.filter(item => {
-            const divisionMatch = (filterDivisionValue === "all" || item.division === filterDivisionValue);
-            const dateMatch = (!filterDateValue || item.date === filterDateValue);
-            return divisionMatch && dateMatch;
-        });
+        tableBody.innerHTML = "<tr><td colspan='6'>Loading online data...</td></tr>";
 
-        if (filteredData.length === 0) {
-            noDataMessage.style.display = "block";
-            return;
-        }
-        
-        noDataMessage.style.display = "none";
+        fetch(GOOGLE_SCRIPT_URL)
+        .then(res => res.json())
+        .then(existingData => {
+            tableBody.innerHTML = "";
+            
+            const filteredData = existingData.filter(item => {
+                const divisionMatch = (filterDivisionValue === "all" || item.division === filterDivisionValue);
+                
+                let itemDate = item.date;
+                if(item.date && item.date.includes("T")) {
+                    itemDate = item.date.split('T')[0];
+                }
+                const dateMatch = (!filterDateValue || itemDate === filterDateValue);
+                return divisionMatch && dateMatch;
+            });
 
-        filteredData.forEach(record => {
-            const row = document.createElement("tr");
-            const problemDisplay = record.problem === "no problem" 
-                ? record.problem 
-                : `<span class="problem-badge">${record.problem}</span>`;
+            if (filteredData.length === 0) {
+                noDataMessage.style.display = "block";
+                return;
+            }
+            
+            noDataMessage.style.display = "none";
 
-            row.innerHTML = `
-                <td>${record.date}</td>
-                <td><strong>${record.division}</strong></td>
-                <td>${record.roomNumber}</td>
-                <td>${record.temperature}</td>
-                <td>${record.rh}</td>
-                <td>${problemDisplay}</td>
-            `;
-            tableBody.appendChild(row);
+            filteredData.forEach(record => {
+                const row = document.createElement("tr");
+                const checkProblem = record.problem ? record.problem.toLowerCase() : "";
+                const problemDisplay = (checkProblem === "no problem" || checkProblem === "") 
+                    ? "no problem" 
+                    : `<span class="problem-badge">${record.problem}</span>`;
+
+                let displayDate = record.date;
+                if(record.date && record.date.includes("T")) {
+                    displayDate = record.date.split('T')[0];
+                }
+
+                row.innerHTML = `
+                    <td>${displayDate}</td>
+                    <td><strong>${record.division}</strong></td>
+                    <td>${record.roomNumber}</td>
+                    <td>${record.temperature}</td>
+                    <td>${record.rh}</td>
+                    <td>${problemDisplay}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        })
+        .catch(() => {
+            tableBody.innerHTML = "<tr><td colspan='6' style='color:red;'>Error fetching data!</td></tr>";
         });
     }
 
     function exportToPDF() {
         const tableBody = document.getElementById("dataTableBody");
         const filterDateValue = document.getElementById("filterDate").value || "Data";
-        
-        if (tableBody.children.length === 0) {
-            alert("No data available to export to PDF!");
-            return;
+        if (tableBody.children.length === 0 || tableBody.innerText.includes("Loading")) {
+            alert("No data available to export!"); return;
         }
-
-       
-        if (typeof html2pdf !== 'undefined') {
-            const element = document.getElementById("pdfContent");
-            
-           
-            const actionBar = document.querySelector(".action-bar");
-            actionBar.style.display = "none";
-
-            const opt = {
-                margin:       10,
-                filename:     `Viewer_Dashboard_${filterDateValue}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
-            };
-
-            html2pdf().set(opt).from(element).save().then(() => {
-               
-                actionBar.style.display = "flex";
-            });
-        } else {
-            
-            window.print();
-        }
-    }
-
-    function clearAllData() {
-        if (confirm("Are you sure you want to delete all saved data?")) {
-            localStorage.removeItem("allUsersData");
-            loadRecords();
-        }
+        const element = document.getElementById("pdfContent");
+        const actionBar = document.querySelector(".action-bar");
+        actionBar.style.display = "none";
+        const opt = {
+            margin: 10, filename: `Viewer_Dashboard_${filterDateValue}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        };
+        html2pdf().set(opt).from(element).save().then(() => { actionBar.style.display = "flex"; });
     }
 </script>
 </body>
